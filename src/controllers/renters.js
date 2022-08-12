@@ -57,12 +57,65 @@ exports.addCar = async (req, res) => {
     res.send(400).send();
   }
 };
-exports.getAllCars=async(req,res)=>{
-    try{
-const cars=await Cars.find({})
-res.send(cars)
+exports.getAllCars = async (req, res) => {
+  try {
+    const cars = await Cars.find({});
+    res.send(cars);
+  } catch (e) {
+    res.status(500).send();
+  }
+};
+exports.getSingleCar = async (req, res) => {
+  const _id = req.params.id;
+  try {
+    const car = await Car.findById(_id);
+    if (!car) {
+      return res.status(400).send();
     }
-    catch(e){
-res.status(500).send()
+    res.send(car);
+  } catch (e) {
+    res.status(500).send();
+  }
+};
+exports.updateCarInformation = async (req, res) => {
+  const _id = req.params.id;
+  const updates = Object.keys(req.body);
+  const allowedUpdates = [
+    "seats",
+    "tires",
+    "condition",
+    "fuelType",
+    "carType",
+    "model",
+    "price",
+  ];
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
+  if (!isValidOperation) {
+    res.status(400).send({ error: "Invalid Updates!" });
+  }
+  try {
+    const car = await Car.findById(_id);
+    // car[update] means like car.AnykeyValue
+    updates.forEach((update) => (car[update] = req.body[update]));
+    await car.save();
+    if (!car) {
+      return res.status(404).send();
     }
-}
+    res.send(car);
+  } catch (e) {
+    res.status(500).send;
+  }
+};
+exports.deleteCar = async (req, res) => {
+  try {
+    const car = await Car.findByIdAndDelete(req.params.id);
+    if (!car) {
+      res.status(404).send();
+    }
+    res.send(car);
+  } catch (e) {
+    res.status(500).send(e);
+  }
+};
